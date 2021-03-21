@@ -1,0 +1,30 @@
+version: '3'
+services:
+
+  mysql-primary:
+    image: repl-study/mysql
+    build:
+      context: ./docker
+    volumes:
+      - type: volume
+        source: mysql-primary-storage
+        target: /var/lib/mysql
+    env_file:
+      ./mysql.env
+    environment:
+      MYSQL_PRIMARY: 'true'
+
+  mysql-replica:
+    image: repl-study/mysql
+    depends_on:
+      - mysql-primary
+    env_file:
+      ./mysql.env
+    environment:
+      MYSQL_PRIMARY: 'false'
+      MYSQL_PRIMARY_HOST: 'mysql-primary'
+
+volumes:
+
+  mysql-primary-storage:
+    name: mysql-repl-study-primary-storage
