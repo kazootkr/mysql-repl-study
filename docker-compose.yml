@@ -18,6 +18,10 @@ services:
     image: repl-study/mysql
     depends_on:
       - mysql-primary
+    volumes:
+      - type: volume
+        source: mysql-replica-storage
+        target: /var/lib/mysql
     env_file:
       ./mysql.env
     environment:
@@ -28,3 +32,6 @@ volumes:
 
   mysql-primary-storage:
     name: mysql-repl-study-primary-storage
+
+  mysql-replica-storage:
+    name: mysql-repl-study-replica-storage

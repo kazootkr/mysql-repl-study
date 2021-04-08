@@ -24,3 +24,13 @@ MySQL公式からサンプルデータを取得してインポートします。
 ```shell
 make import
 ```
+
+プライマリのボリュームをコピーしてレプリカを作成することもできます。
+
+```shell
+# レプリカが存在しない状態から
+make create-replica-from-primary
+docker compose up -d
+# レプリカに対して設定を行い、レプリケーション開始する
+make prepare-repl.sh
+```

@@ -3,13 +3,15 @@
 PRIMARY_DOCKER_VOLUME_NAME := mysql-repl-study-primary-storage
 PRIMARY_CONTAINER_NAME := $(shell docker compose ps | grep mysql-primary | cut -d" " -f1)
 
+REPLICA_DOCKER_VOLUME_NAME := mysql-repl-study-replica-storage
+
 ifeq ($(shell uname),Darwin)
 	ZCAT_CMD := gzcat
 else
 	ZCAT_CMD := zcat
 endif
 
-.PHONY: all run stop destroy import import_world import_sakila-db clean stats prepare-repl stop-slave
+.PHONY: all run stop destroy import import_world import_sakila-db clean stats prepare-repl stop-slave create-replica-from-primary
 
 ## ================================================================
 # コンテナ関連の操作
@@ -25,12 +27,13 @@ stop:
 destroy:
 	docker compose down
 	docker volume rm $(PRIMARY_DOCKER_VOLUME_NAME)
+	docker volume rm $(REPLICA_DOCKER_VOLUME_NAME)
 
 ## ================================================================
 # サンプルデータのインポート
 ## ================================================================
 
-import: run sample-sql/ import_world import_sakila-db
+import: sample-sql/ import_world import_sakila-db
 
 import_world:
 	$(ZCAT_CMD) ./sample-sql/world.sql.gz | docker exec -i "$(PRIMARY_CONTAINER_NAME)" sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -uroot'
@@ -61,3 +64,8 @@ prepare-repl: stop-slave
 
 stop-slave:
 	docker compose exec  mysql-replica sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysqladmin stop-slave'
+
+create-replica-from-primary:
+	docker compose down
+	docker volume rm $(REPLICA_DOCKER_VOLUME_NAME)
+	./tools/create-replica-volume-from-primary.sh $(REPLICA_DOCKER_VOLUME_NAME) $(PRIMARY_DOCKER_VOLUME_NAME)
