@@ -1,4 +1,4 @@
-FROM mysql:5.7.17
+FROM mysql:5.7-debian
 
 RUN apt-get update
 RUN apt-get install -y wget
