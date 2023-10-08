@@ -5,12 +5,6 @@ PRIMARY_CONTAINER_NAME := $(shell docker compose ps | grep mysql-primary | cut -
 
 REPLICA_DOCKER_VOLUME_NAME := mysql-repl-study-replica-storage
 
-ifeq ($(shell uname),Darwin)
-	ZCAT_CMD := gzcat
-else
-	ZCAT_CMD := zcat
-endif
-
 .PHONY: all run stop destroy import import_world import_sakila-db clean stats prepare-repl stop-slave create-replica-from-primary
 
 ## ================================================================
@@ -36,7 +30,7 @@ destroy:
 import: sample-sql/ import_world import_sakila-db
 
 import_world:
-	$(ZCAT_CMD) ./sample-sql/world.sql.gz | docker exec -i "$(PRIMARY_CONTAINER_NAME)" sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -uroot'
+	cat ./sample-sql/world-db/world.sql | docker exec -i "$(PRIMARY_CONTAINER_NAME)" sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -uroot'
 
 import_sakila-db:
 	tar zxOf ./sample-sql/sakila-db.tar.gz sakila-db/sakila-schema.sql | docker exec -i "$(PRIMARY_CONTAINER_NAME)" sh -c 'MYSQL_PWD=$${MYSQL_ROOT_PASSWORD} mysql -uroot'
@@ -44,7 +38,7 @@ import_sakila-db:
 
 sample-sql/:
 	mkdir sample-sql
-	cd sample-sql && curl -O https://downloads.mysql.com/docs/world.sql.gz
+	cd sample-sql && curl -O https://downloads.mysql.com/docs/world-db.zip && unzip world-db.zip
 	cd sample-sql && curl -O https://downloads.mysql.com/docs/sakila-db.tar.gz
 	cd sample-sql && curl -O https://downloads.mysql.com/docs/menagerie-db.tar.gz
 
